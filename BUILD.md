@@ -1,0 +1,19 @@
+# ansible-project — BUILD
+
+- **Repo:** `UncleD0886475978/ansible-project` — public, original (not a fork). Described as "Ansible-HomeLab".
+- **Stack actually found** (via GitHub connector directory listing of the root):
+  - Ansible: `site.yml` (135 B, root — the main playbook), `ansible.cfg`, `inventory/` directory
+  - Root: `README.md` (34 B — essentially a title only), `LICENSE`, `.gitignore`
+  - No Terraform, no Dockerfile/docker-compose, no Python requirements at root — this is a pure Ansible project.
+- **Inspection note:** the connector returned directory listings, not file bodies, and a later call hit GitHub HTTP 429 (rate limit), so the files *inside* `inventory/` and the body of `site.yml`/`ansible.cfg` were not read. `setup.sh` discovers inventory files at runtime and relies on `ansible.cfg` being picked up automatically.
+
+## What setup.sh does
+
+1. Uses the current checkout if its git remote mentions `ansible-project` (or the script sits in the repo root); otherwise clones into `~/repos/ansible-project` (`git pull` if already there).
+2. Checks python3; if missing, prints the Python and Ansible install-doc URLs and exits cleanly.
+3. Resolves Ansible: system `ansible-playbook` if present, else creates `.venv` and `pip install ansible`.
+4. Lists the inventory files under `inventory/` and shows which hosts `site.yml` would target (`--list-hosts`).
+5. Runs `ansible-playbook --syntax-check site.yml` — validation only, no host is changed — and lists any other playbooks present.
+6. Prints next commands: `--check` dry-run first, then the real run, plus notes on stopping (nothing persistent) and logs (terminal output / `ansible.cfg`).
+
+**Issue it prevents:** running an unvalidated homelab playbook straight against real hosts and breaking them with a syntax or inventory mistake a 5-second check would have caught.
